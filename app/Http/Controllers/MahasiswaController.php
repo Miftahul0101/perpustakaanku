@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 
 class MahasiswaController extends Controller
 {
@@ -31,64 +33,64 @@ class MahasiswaController extends Controller
 
     public function edit()
     {
-        $user = Auth::user();
-        $mahasiswa = Mahasiswa::where('user_id', $user->id)->first();
-        
-        return view('mahasiswa.edit', compact('user', 'mahasiswa'));
+        $mahasiswa = auth()->user()->mahasiswa;
+        return view('mahasiswa.edit', compact('mahasiswa'));
     }
-
+    
     public function update(Request $request)
     {
-        $request->validate([
+        $user = auth()->user();
+        $mahasiswa = $user->mahasiswa;
+    
+        $validatedData = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users,email,' . Auth::id(),
-            'alamat' => 'nullable|string|max:255',
-            'no_telp' => 'nullable|string|max:15',
-            'jurusan' => 'required|string|max:255',
-            'fakultas' => 'required|string|max:255',
-            'jenis_kelamin' => 'required|in:L,P',
-            'tanggal_lahir' => 'required|date',
-            'foto' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-            'password' => 'nullable|string|min:8|confirmed',
+            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
+            'alamat' => 'required|string',
+            'no_telp' => 'required|string',
+            'jurusan' => 'required|string',
+            'fakultas' => 'required|string',
+            'angkatan' => 'required|integer',
+            'foto' => 'image|mimes:jpeg,png,jpg|max:2048'
         ]);
-
-        // Update user data
-        $user = Auth::user();
-        $user->name = $request->name;
-        $user->email = $request->email;
-        $user->alamat = $request->alamat;
-        $user->no_telp = $request->no_telp;
-        
-        if ($request->filled('password')) {
-            $user->password = Hash::make($request->password);
-        }
-        
-        $user->save();
-
-        // Update mahasiswa data
-        $mahasiswa = Mahasiswa::where('user_id', $user->id)->first();
-        $mahasiswa->jurusan = $request->jurusan;
-        $mahasiswa->fakultas = $request->fakultas;
-        $mahasiswa->jenis_kelamin = $request->jenis_kelamin;
-        $mahasiswa->tanggal_lahir = $request->tanggal_lahir;
-
-        // Handle foto upload
-        if ($request->hasFile('foto')) {
-            // Delete old photo if exists
-            if ($mahasiswa->foto) {
-                Storage::delete('public/foto_mahasiswa/' . $mahasiswa->foto);
+    
+        DB::beginTransaction();
+        try {
+            // Update user data
+            $user->update([
+                'name' => $validatedData['name'],
+                'email' => $validatedData['email'],
+                'alamat' => $validatedData['alamat'],
+                'no_telp' => $validatedData['no_telp']
+            ]);
+    
+            // Update mahasiswa data
+            $mahasiswaData = [
+                'jurusan' => $validatedData['jurusan'],
+                'fakultas' => $validatedData['fakultas'],
+                'angkatan' => $validatedData['angkatan']
+            ];
+    
+            // Handle foto upload
+            if ($request->hasFile('foto')) {
+                // Delete old photo if exists
+                if ($mahasiswa->foto) {
+                    Storage::disk('public')->delete($mahasiswa->foto);
+                }
+                
+                $fotoPath = $request->file('foto')->store('mahasiswa_photos', 'public');
+                $mahasiswaData['foto'] = $fotoPath;
             }
-            
-            $foto = $request->file('foto');
-            $fotoName = time() . '_' . $foto->getClientOriginalName();
-            $foto->storeAs('public/foto_mahasiswa', $fotoName);
-            $mahasiswa->foto = $fotoName;
+    
+            $mahasiswa->update($mahasiswaData);
+    
+            DB::commit();
+    
+            return redirect()->route('mahasiswa.index')
+                ->with('success', 'Profil berhasil diperbarui');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->withErrors(['msg' => 'Gagal memperbarui profil: ' . $e->getMessage()]);
         }
-
-        $mahasiswa->save();
-
-        return redirect()->route('mahasiswa.index')
-            ->with('success', 'Profile berhasil diperbarui!');
     }
 }
 

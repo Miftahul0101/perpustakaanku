@@ -71,7 +71,7 @@
                     <div class="w-1/3 p-6 border-r border-gray-200">
                         <div class="aspect-w-1 aspect-h-1">
                             @if($mahasiswa->foto)
-                                <img src="{{ Storage::url('foto_mahasiswa/' . $mahasiswa->foto) }}" 
+                                <img src="{{ Storage::url('/' . $mahasiswa->foto) }}" 
                                      alt="Foto Profil" 
                                      class="object-cover rounded-lg shadow">
                             @else

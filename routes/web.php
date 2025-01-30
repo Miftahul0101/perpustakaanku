@@ -39,10 +39,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::resource('buku', BukuController::class);
     Route::resource('adminmahasiswa', AdminMahasiswaController::class);
     Route::resource('kategori', KategoriController::class);
-        // Remove category from book
-        Route::delete('buku/{buku}/kategori/{kategori}', 'removeCategory')
-            ->name('buku.kategori.remove');
-        
+    
         // View categories for a book
         Route::get('buku/{buku}/kategori', 'getCategories')
             ->name('buku.kategori.index');
@@ -62,13 +59,6 @@ Route::middleware(['auth', 'role:petugas'])->prefix('petugas')->group(function (
 
     Route::resource('buku', BukuController::class);
     Route::resource('kategori', KategoriController::class);
-        // Assign categories to book
-        Route::post('buku/{buku}/kategori', 'assignCategories')
-            ->name('buku.kategori.assign');
-        
-        // Remove category from book
-        Route::delete('buku/{buku}/kategori/{kategori}', 'removeCategory')
-            ->name('buku.kategori.remove');
         
         // View categories for a book
         Route::get('buku/{buku}/kategori', 'getCategories')
@@ -78,7 +68,7 @@ Route::middleware(['auth', 'role:petugas'])->prefix('petugas')->group(function (
         Route::get('kategori/{kategori}/books', 'getBooksByCategory')
             ->name('kategori.books');
     });
-});
+
 
 // Mahasiswa Routes
 Route::middleware(['auth', 'role:mahasiswa'])->prefix('mahasiswa')->group(function () {

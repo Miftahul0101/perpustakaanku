@@ -41,12 +41,6 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::resource('adminmahasiswa', AdminMahasiswaController::class);
     Route::resource('kategori', KategoriController::class);
     Route::controller(BukuKategoriController::class)->group(function () {
-        // Assign categories to book
-        Route::post('buku/{buku}/kategori', 'index')
-            ->name('buku.kategori');
-        
-        Route::post('buku/{buku}/kategori', 'assignCategories')
-            ->name('buku.kategori.assign');
         
         // Remove category from book
         Route::delete('buku/{buku}/kategori/{kategori}', 'removeCategory')

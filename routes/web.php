@@ -39,14 +39,6 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::resource('buku', BukuController::class);
     Route::resource('adminmahasiswa', AdminMahasiswaController::class);
     Route::resource('kategori', KategoriController::class);
-    
-        // View categories for a book
-        Route::get('buku/{buku}/kategori', 'getCategories')
-            ->name('buku.kategori.index');
-        
-        // View books by category
-        Route::get('kategori/{kategori}/books', 'getBooksByCategory')
-            ->name('kategori.books');
             
     });
 

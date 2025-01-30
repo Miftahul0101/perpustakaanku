@@ -11,7 +11,6 @@ use App\Http\Controllers\PeminjamanController;
 use App\Models\Buku;
 use App\Models\Mahasiswa;
 use App\Http\Controllers\KategoriController;
-use App\Http\Controllers\BukuKategoriController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -40,8 +39,6 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::resource('buku', BukuController::class);
     Route::resource('adminmahasiswa', AdminMahasiswaController::class);
     Route::resource('kategori', KategoriController::class);
-    Route::controller(BukuKategoriController::class)->group(function () {
-        
         // Remove category from book
         Route::delete('buku/{buku}/kategori/{kategori}', 'removeCategory')
             ->name('buku.kategori.remove');
@@ -55,7 +52,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
             ->name('kategori.books');
             
     });
-});
+
 
 // Petugas Routes
 Route::middleware(['auth', 'role:petugas'])->prefix('petugas')->group(function () {
@@ -65,7 +62,6 @@ Route::middleware(['auth', 'role:petugas'])->prefix('petugas')->group(function (
 
     Route::resource('buku', BukuController::class);
     Route::resource('kategori', KategoriController::class);
-    Route::controller(BukuKategoriController::class)->group(function () {
         // Assign categories to book
         Route::post('buku/{buku}/kategori', 'assignCategories')
             ->name('buku.kategori.assign');

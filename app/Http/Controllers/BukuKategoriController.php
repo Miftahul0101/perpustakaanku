@@ -3,111 +3,105 @@
 namespace App\Http\Controllers;
 
 use App\Models\Buku;
+use App\Models\Kategori;
+use App\Models\BukuKategori;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 
-class BukuController extends Controller
+class BukuKategoriController extends Controller
 {
-    /**
-     * Display a listing of books
-     */
     public function index()
     {
-        $books = Buku::latest()->paginate(10);
-        return view('books.index', compact('books'));
+        // Mengambil buku yang memiliki kategori
+        $bukuDenganKategori = Buku::whereHas('kategoris')
+            ->with(['kategoris' => function($query) {
+                $query->select('kategoris.*');
+            }])
+            ->get();
+
+        return view('buku-kategoris.index', compact('bukuDenganKategori'));
     }
 
-    /**
-     * Show form for creating a new book
-     */
     public function create()
-    {
-        return view('books.create');
-    }
+{
+    // Ambil semua buku dengan informasi apakah sudah memiliki kategori
+    $bukus = Buku::withCount('kategoris')
+        ->whereDoesntHave('kategoris') // Hanya ambil buku yang belum punya kategori
+        ->get();
+    
+    // Ambil semua kategori
+    $kategoris = Kategori::all();
+    
+    return view('buku-kategoris.create', compact('bukus', 'kategoris'));
+}
 
-    /**
-     * Store a newly created book
-     */
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'judul' => 'required|max:255',
-            'pengarang' => 'required|max:255',
-            'penerbit' => 'required|max:255',
-            'tahun_terbit' => 'required|numeric|digits:4',
-            'isbn' => 'required|unique:bukus|max:13',
-            'stok' => 'required|numeric|min:0',
-            'kategori_id' => 'required|exists:kategoris,id'
+        $request->validate([
+            'buku_id' => 'required|exists:buku,id',
+            'kategori_ids' => 'required|array',
+            'kategori_ids.*' => 'exists:kategoris,id'
         ]);
 
-        if ($validator->fails()) {
-            return redirect()
-                ->route('books.create')
-                ->withErrors($validator)
-                ->withInput();
+        // Cek apakah kombinasi buku dan kategori sudah ada
+        foreach($request->kategori_ids as $kategori_id) {
+            $exists = BukuKategori::where('buku_id', $request->buku_id)
+                                 ->where('kategori_id', $kategori_id)
+                                 ->exists();
+            
+            if(!$exists) {
+                BukuKategori::create([
+                    'buku_id' => $request->buku_id,
+                    'kategori_id' => $kategori_id
+                ]);
+            }
         }
 
-        Buku::create($request->all());
-
-        return redirect()
-            ->route('books.index')
-            ->with('success', 'Buku berhasil ditambahkan');
+        return redirect()->route('buku-kategoris.index')
+            ->with('success', 'Kategori buku berhasil ditambahkan.');
     }
 
-    /**
-     * Display the specified book
-     */
-    public function show(Buku $book)
+    public function edit(BukuKategori $bukuKategori)
     {
-        return view('books.show', compact('book'));
+        $bukus = Buku::all();
+        $kategoris = Kategori::all();
+        
+        // Ambil kategori yang sudah terpilih untuk buku ini
+        $selectedKategoris = BukuKategori::where('buku_id', $bukuKategori->buku_id)
+                                        ->pluck('kategori_id')
+                                        ->toArray();
+        
+        return view('buku-kategoris.edit', compact('bukuKategori', 'bukus', 'kategoris', 'selectedKategoris'));
     }
 
-    /**
-     * Show form for editing the specified book
-     */
-    public function edit(Buku $book)
+    public function update(Request $request, BukuKategori $bukuKategori)
     {
-        return view('books.edit', compact('book'));
-    }
-
-    /**
-     * Update the specified book
-     */
-    public function update(Request $request, Buku $book)
-    {
-        $validator = Validator::make($request->all(), [
-            'judul' => 'required|max:255',
-            'pengarang' => 'required|max:255',
-            'penerbit' => 'required|max:255',
-            'tahun_terbit' => 'required|numeric|digits:4',
-            'isbn' => 'required|max:13|unique:bukus,isbn,' . $book->id,
-            'stok' => 'required|numeric|min:0',
-            'kategori_id' => 'required|exists:kategoris,id'
+        $request->validate([
+            'buku_id' => 'required|exists:buku,id',
+            'kategori_ids' => 'required|array',
+            'kategori_ids.*' => 'exists:kategoris,id'
         ]);
 
-        if ($validator->fails()) {
-            return redirect()
-                ->route('books.edit', $book)
-                ->withErrors($validator)
-                ->withInput();
+        // Hapus kategori lama
+        BukuKategori::where('buku_id', $request->buku_id)->delete();
+
+        // Tambah kategori baru
+        foreach($request->kategori_ids as $kategori_id) {
+            BukuKategori::create([
+                'buku_id' => $request->buku_id,
+                'kategori_id' => $kategori_id
+            ]);
         }
 
-        $book->update($request->all());
-
-        return redirect()
-            ->route('books.index')
-            ->with('success', 'Buku berhasil diperbarui');
+        return redirect()->route('buku-kategoris.index')
+            ->with('success', 'Kategori buku berhasil diperbarui.');
     }
 
-    /**
-     * Remove the specified book
-     */
-    public function destroy(Buku $book)
+    public function destroy(BukuKategori $bukuKategori)
     {
-        $book->delete();
+        // Hapus semua kategori untuk buku ini
+        BukuKategori::where('buku_id', $bukuKategori->buku_id)->delete();
 
-        return redirect()
-            ->route('books.index')
-            ->with('success', 'Buku berhasil dihapus');
+        return redirect()->route('buku-kategoris.index')
+            ->with('success', 'Kategori buku berhasil dihapus.');
     }
 }

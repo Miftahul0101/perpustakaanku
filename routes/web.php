@@ -12,6 +12,8 @@ use App\Models\Buku;
 use App\Models\Mahasiswa;
 use App\Http\Controllers\KategoriController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\BukuKategoriController;
+use App\Http\Controllers\PetugasController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -39,15 +41,14 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::resource('buku', BukuController::class);
     Route::resource('adminmahasiswa', AdminMahasiswaController::class);
     Route::resource('kategori', KategoriController::class);
-            
+    Route::resource('buku-kategoris', BukuKategoriController::class);
     });
 
 
 // Petugas Routes
 Route::middleware(['auth', 'role:petugas'])->prefix('petugas')->group(function () {
-    Route::get('/dashboard', function () {
-        return view('petugas.dashboard');
-    })->name('petugas.dashboard');
+    Route::get('/dashboard', [PetugasController::class, 'dashboard'])->name('petugas.dashboard');
+
 
     Route::resource('buku', BukuController::class);
     Route::resource('kategori', KategoriController::class);

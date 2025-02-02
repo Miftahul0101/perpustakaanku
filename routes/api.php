@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\KategoriController;
+use App\Http\Controllers\BukuKategoriController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -21,4 +22,10 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     Route::apiResource('kategori', KategoriController::class);
     
     
+});
+
+// routes/api.php
+Route::get('/buku/{buku}/kategoris', function ($bukuId) {
+    return BukuKategori::where('buku_id', $bukuId)
+        ->pluck('kategori_id');
 });

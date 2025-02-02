@@ -33,18 +33,10 @@
                                     <tr>
                                         <td class="px-6 py-4 whitespace-nowrap">{{ $kategori->id }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap">{{ $kategori->nama }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <a href="{{ route('kategori.books', $kategori) }}" 
-                                               class="text-blue-600 hover:text-blue-900">
-                                                {{ $kategori->bukus_count }} Buku
-                                            </a>
-                                        </td>
+                                        
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <div class="flex space-x-3">
-                                                <a href="{{ route('kategori.books', $kategori) }}" 
-                                                   class="text-green-600 hover:text-green-900">
-                                                    Lihat Buku
-                                                </a>
+                                                
                                                 <a href="{{ route('kategori.edit', $kategori) }}" 
                                                    class="text-indigo-600 hover:text-indigo-900">
                                                     Edit
@@ -74,10 +66,7 @@
                                 <div class="bg-gray-50 rounded-lg p-4">
                                     <h4 class="font-medium text-gray-800">{{ $buku->judul }}</h4>
                                     <p class="text-sm text-gray-600 mb-2">{{ $buku->penulis }}</p>
-                                    <a href="{{ route('buku.kategori.index', $buku) }}" 
-                                       class="inline-block bg-green-500 hover:bg-green-600 text-white text-sm font-medium py-1 px-3 rounded">
-                                        Tambah Kategori
-                                    </a>
+                                    
                                 </div>
                             @endforeach
                         </div>

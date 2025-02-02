@@ -40,4 +40,10 @@ class Buku extends Model
         return $this->belongsToMany(Kategori::class, 'buku_kategoris', 'buku_id', 'kategori_id')
                     ->withTimestamps();
     }
+    
+
+    public function bukuKategoris()
+    {
+        return $this->hasMany(BukuKategori::class);
+    }
 }

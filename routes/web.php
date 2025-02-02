@@ -54,7 +54,6 @@ Route::middleware(['auth', 'role:petugas'])->prefix('petugas')->group(function (
         
     });
 
-
 // Mahasiswa Routes
 Route::middleware(['auth', 'role:mahasiswa'])->prefix('mahasiswa')->group(function () {
     Route::get('/dashboard', [MahasiswaController::class, 'index'])->name('mahasiswa.dashboard');
@@ -63,3 +62,4 @@ Route::middleware(['auth', 'role:mahasiswa'])->prefix('mahasiswa')->group(functi
     Route::put('/profile', [MahasiswaController::class, 'update'])->name('mahasiswa.update');
 
 });
+

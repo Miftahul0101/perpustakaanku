@@ -92,5 +92,12 @@ class MahasiswaController extends Controller
             return back()->withErrors(['msg' => 'Gagal memperbarui profil: ' . $e->getMessage()]);
         }
     }
+
+    public function destroy(Mahasiswa $mahasiswa)
+    {
+        $mahasiswa->delete();
+        return redirect()->route('mahasiswa.index')
+            ->with('success', 'mahasiswa berhasil dihapus');
+    }
 }
 

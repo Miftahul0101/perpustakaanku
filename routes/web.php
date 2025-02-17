@@ -7,7 +7,7 @@ use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\MahasiswaController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\BukuController;
-use App\Http\Controllers\PeminjamanController;
+use App\Http\Controllers\BookLendingController;
 use App\Models\Buku;
 use App\Models\Mahasiswa;
 use App\Http\Controllers\KategoriController;
@@ -39,6 +39,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::get('/users/{$user}', [UserController::class, 'destroy'])->name('users.destroy');
 
     Route::resource('buku', BukuController::class);
+    Route::get('/buku/{buku}/qrcode/download', [BukuController::class, 'downloadQRCode'])->name('buku.qrcode.download');
     Route::resource('adminmahasiswa', AdminMahasiswaController::class);
     Route::resource('kategori', KategoriController::class);
     Route::resource('buku-kategoris', BukuKategoriController::class);
@@ -51,6 +52,7 @@ Route::middleware(['auth', 'role:petugas'])->prefix('petugas')->group(function (
 
 
     Route::resource('buku', BukuController::class);
+    Route::get('/buku/{buku}/qrcode/download', [BukuController::class, 'downloadQRCode'])->name('buku.qrcode.download');
     Route::resource('kategori', KategoriController::class);
         
     });
@@ -61,6 +63,12 @@ Route::middleware(['auth', 'role:mahasiswa'])->prefix('mahasiswa')->group(functi
     Route::get('/profile', [MahasiswaController::class, 'profile'])->name('mahasiswa.index');
     Route::get('/profile/edit', [MahasiswaController::class, 'edit'])->name('mahasiswa.edit');
     Route::put('/profile', [MahasiswaController::class, 'update'])->name('mahasiswa.update');
+
+    Route::get('/scan-qr', [BookLendingController::class, 'scanQR'])->name('scan.qr');
+    Route::post('/process-qr', [BookLendingController::class, 'processQR'])->name('process.qr');
+    Route::get('/borrow/{book}', [BookLendingController::class, 'showBorrowForm'])->name('borrow.form');
+    Route::post('/borrow/{book}', [BookLendingController::class, 'processBorrow'])->name('borrow.process');
+    Route::get('/my-borrows', [BookLendingController::class, 'myBorrows'])->name('my.borrows');
 
 });
 

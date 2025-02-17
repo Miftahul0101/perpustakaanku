@@ -6,11 +6,6 @@ use Illuminate\Support\Facades\Schema;
 
 class CreateBukuTable extends Migration
 {
-    /**
-     * Run the migrations.
-     *
-     * @return void
-     */
     public function up()
     {
         Schema::create('buku', function (Blueprint $table) {
@@ -22,16 +17,13 @@ class CreateBukuTable extends Migration
             $table->string('isbn', 20)->unique()->nullable();
             $table->enum('status', ['tersedia', 'dipinjam'])->default('tersedia');
             $table->integer('stok')->default(0);
+            $table->text('sinopsis')->nullable(); // New field
+            $table->string('foto')->nullable(); // New field
             $table->string('qr_code')->nullable();
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     *
-     * @return void
-     */
     public function down()
     {
         Schema::dropIfExists('buku');

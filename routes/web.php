@@ -7,7 +7,7 @@ use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\MahasiswaController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\BukuController;
-use App\Http\Controllers\BookLendingController;
+use App\Http\Controllers\PeminjamanController;
 use App\Models\Buku;
 use App\Models\Mahasiswa;
 use App\Http\Controllers\KategoriController;
@@ -52,9 +52,12 @@ Route::middleware(['auth', 'role:petugas'])->prefix('petugas')->group(function (
 
 
     Route::resource('buku', BukuController::class);
-    Route::get('/buku/{buku}/qrcode/download', [BukuController::class, 'downloadQRCode'])->name('buku.qrcode.download');
+    Route::get('/buku/{buku}/qrcode/download', [BukuController::class, 'downloadQRCode'])->name('buku.download-qr');
     Route::resource('kategori', KategoriController::class);
-        
+
+    Route::get('/peminjaman/{id}/return', [PeminjamanController::class, 'return'])->name('peminjaman.return');
+    Route::put('/peminjaman/{id}/confirm-return', [PeminjamanController::class, 'confirmReturn'])->name('peminjaman.confirm-return');
+
     });
 
 // Mahasiswa Routes
@@ -64,11 +67,9 @@ Route::middleware(['auth', 'role:mahasiswa'])->prefix('mahasiswa')->group(functi
     Route::get('/profile/edit', [MahasiswaController::class, 'edit'])->name('mahasiswa.edit');
     Route::put('/profile', [MahasiswaController::class, 'update'])->name('mahasiswa.update');
 
-    Route::get('/scan-qr', [BookLendingController::class, 'scanQR'])->name('scan.qr');
-    Route::post('/process-qr', [BookLendingController::class, 'processQR'])->name('process.qr');
-    Route::get('/borrow/{book}', [BookLendingController::class, 'showBorrowForm'])->name('borrow.form');
-    Route::post('/borrow/{book}', [BookLendingController::class, 'processBorrow'])->name('borrow.process');
-    Route::get('/my-borrows', [BookLendingController::class, 'myBorrows'])->name('my.borrows');
+    Route::get('/peminjaman/scan', [PeminjamanController::class, 'index'])->name('peminjaman.scan');
+    Route::get('/peminjaman/get-buku/{buku}', [PeminjamanController::class, 'getBuku'])->name('peminjaman.get-buku');
+    Route::post('/peminjaman', [PeminjamanController::class, 'store'])->name('peminjaman.store');
 
 });
 

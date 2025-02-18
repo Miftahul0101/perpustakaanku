@@ -2,13 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Buku extends Model
 {
-    use HasFactory;
-
     protected $table = 'buku';
     
     protected $fillable = [
@@ -19,22 +16,22 @@ class Buku extends Model
         'isbn',
         'status',
         'stok',
+        'sinopsis',
+        'foto',
         'qr_code'
     ];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array
-     */
-    protected $casts = [
-        'tahun_terbit' => 'integer',
-        'stok' => 'integer',
-    ];
+    public function peminjaman()
+    {
+        return $this->hasMany(Peminjaman::class, 'buku_id');
+    }
 
-    /**
-     * Get the categories for the book.
-     */
+    // Check if book is available for borrowing
+    public function isAvailable()
+    {
+        return $this->stok > 0;
+    }
+
     public function kategoris()
     {
         return $this->belongsToMany(Kategori::class, 'buku_kategoris', 'buku_id', 'kategori_id')

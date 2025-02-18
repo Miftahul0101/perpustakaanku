@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use App\Models\Buku;
@@ -9,17 +8,16 @@ use Endroid\QrCode\Writer\PngWriter;
 use Endroid\QrCode\Color\Color;
 use Endroid\QrCode\Encoding\Encoding;
 use Endroid\QrCode\ErrorCorrectionLevel\ErrorCorrectionLevelHigh;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
-use Symfony\Component\HttpFoundation\Response;
+use Illuminate\Support\Str;
+
 
 class BukuController extends Controller
 {
     private function generateQRCode($book)
     {
-        $qrCode = new QrCode($book->judul . "\n" . 
-                            "Penulis: " . $book->penulis . "\n" .
-                            "ISBN: " . $book->isbn);
+        // Create QR code with book ID for scanning
+        $qrCode = new QrCode((string)$book->id);
         
         $qrCode->setSize(300);
         $qrCode->setMargin(10);
@@ -27,12 +25,12 @@ class BukuController extends Controller
         $qrCode->setErrorCorrectionLevel(new ErrorCorrectionLevelHigh);
         $qrCode->setForegroundColor(new Color(0, 0, 0));
         $qrCode->setBackgroundColor(new Color(255, 255, 255));
-
+    
         $writer = new PngWriter;
         $result = $writer->write($qrCode);
         
         // Save QR code to storage
-        $qrPath = 'qrcodes/' . $book->id . '.png';
+        $qrPath = 'qrcodes/' . $book->id . '_' . Str::slug($book->judul) . '.png';
         Storage::put('public/' . $qrPath, $result->getString());
         
         return [
@@ -44,13 +42,6 @@ class BukuController extends Controller
     public function index()
     {
         $books = Buku::latest()->paginate(10);
-        
-        foreach ($books as $book) {
-            $qrCode = $this->generateQRCode($book);
-            $book->qr_code = $qrCode['data_uri'];
-            $book->qr_path = $qrCode['path'];
-        }
-        
         return view('buku.index', compact('books'));
     }
 
@@ -59,7 +50,13 @@ class BukuController extends Controller
         $qrCode = $this->generateQRCode($buku);
         $buku->qr_code = $qrCode['data_uri'];
         $buku->qr_path = $qrCode['path'];
-        return view('buku.show', compact('buku'));
+        
+        $activePeminjaman = $buku->peminjaman()
+            ->where('status', 'dipinjam')
+            ->with('user')
+            ->get();
+            
+        return view('buku.show', compact('buku', 'activePeminjaman'));
     }
 
     public function create()
@@ -76,9 +73,12 @@ class BukuController extends Controller
             'tahun_terbit' => 'nullable|digits:4',
             'isbn' => 'nullable|unique:buku|max:20',
             'stok' => 'required|integer|min:0',
-            'sinopsis' => 'nullable|string', // New validation
-            'foto' => 'nullable|image|mimes:jpeg,png,jpg|max:2048' // New validation
+            'sinopsis' => 'nullable|string',
+            'foto' => 'nullable|image|mimes:jpeg,png,jpg|max:2048'
         ]);
+
+        // Set initial status based on stock
+        $validated['status'] = $validated['stok'] > 0 ? 'tersedia' : 'dipinjam';
 
         if ($request->hasFile('foto')) {
             $foto = $request->file('foto');
@@ -89,7 +89,9 @@ class BukuController extends Controller
         $book = Buku::create($validated);
 
         // Generate QR code for the new book
-        $this->generateQRCode($book);
+        $qrCode = $this->generateQRCode($book);
+        $book->qr_code = $qrCode['path'];
+        $book->save();
 
         return redirect()->route('buku.index')
             ->with('success', 'Buku berhasil ditambahkan.');
@@ -109,9 +111,12 @@ class BukuController extends Controller
             'tahun_terbit' => 'nullable|digits:4',
             'isbn' => 'nullable|unique:buku,isbn,' . $buku->id . '|max:20',
             'stok' => 'required|integer|min:0',
-            'sinopsis' => 'nullable|string', // New validation
-            'foto' => 'nullable|image|mimes:jpeg,png,jpg|max:2048' // New validation
+            'sinopsis' => 'nullable|string',
+            'foto' => 'nullable|image|mimes:jpeg,png,jpg|max:2048'
         ]);
+
+        // Update status based on new stock value
+        $validated['status'] = $validated['stok'] > 0 ? 'tersedia' : 'dipinjam';
 
         if ($request->hasFile('foto')) {
             // Delete old foto if exists
@@ -127,7 +132,9 @@ class BukuController extends Controller
         $buku->update($validated);
 
         // Regenerate QR code
-        $this->generateQRCode($buku);
+        $qrCode = $this->generateQRCode($buku);
+        $buku->qr_code = $qrCode['path'];
+        $buku->save();
 
         return redirect()->route('buku.index')
             ->with('success', 'Buku berhasil diperbarui.');
@@ -135,11 +142,19 @@ class BukuController extends Controller
 
     public function destroy(Buku $buku)
     {
+        // Check if book has active loans
+        if ($buku->peminjaman()->where('status', 'dipinjam')->exists()) {
+            return redirect()->route('buku.index')
+                ->with('error', 'Buku tidak dapat dihapus karena masih dalam peminjaman.');
+        }
+
         // Delete foto and QR code if they exist
         if ($buku->foto) {
             Storage::delete('public/' . $buku->foto);
         }
-        Storage::delete('public/qrcodes/' . $buku->id . '.png');
+        if ($buku->qr_code) {
+            Storage::delete('public/' . $buku->qr_code);
+        }
 
         $buku->delete();
 
@@ -147,14 +162,11 @@ class BukuController extends Controller
             ->with('success', 'Buku berhasil dihapus.');
     }
 
-    /**
-     * Download QR code for a book
-     */
     public function downloadQRCode(Buku $buku)
-    {
-        $qrCode = $this->generateQRCode($buku);
-        $path = storage_path('app/public/' . $qrCode['path']);
-        
-        return response()->download($path, $buku->judul . '_qr.png');
-    }
+{
+    $qrCode = $this->generateQRCode($buku);
+    $path = storage_path('app/public/' . $qrCode['path']);
+    
+    return response()->download($path, Str::slug($buku->judul) . '_qr.png');
+}
 }

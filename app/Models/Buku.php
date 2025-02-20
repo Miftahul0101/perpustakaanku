@@ -7,29 +7,14 @@ use Illuminate\Database\Eloquent\Model;
 class Buku extends Model
 {
     protected $table = 'buku';
-    
     protected $fillable = [
-        'judul',
-        'penulis',
-        'penerbit',
-        'tahun_terbit',
-        'isbn',
-        'status',
-        'stok',
-        'sinopsis',
-        'foto',
-        'qr_code'
+        'judul', 'penulis', 'penerbit', 'tahun_terbit', 'isbn',
+        'status', 'stok', 'sinopsis', 'foto', 'qr_code'
     ];
 
     public function peminjaman()
     {
-        return $this->hasMany(Peminjaman::class, 'buku_id');
-    }
-
-    // Check if book is available for borrowing
-    public function isAvailable()
-    {
-        return $this->stok > 0;
+        return $this->hasMany(Peminjaman::class);
     }
 
     public function kategoris()

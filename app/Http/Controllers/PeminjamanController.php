@@ -2,128 +2,128 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use App\Models\Buku;
 use App\Models\Peminjaman;
+use App\Models\DendaPayment;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class PeminjamanController extends Controller
 {
-    public function index()
+    public function __construct()
     {
-        return view('peminjaman.scan');
+        $this->middleware('role:mahasiswa')->only(['create', 'store']);
+        $this->middleware('role:petugas')->only(['index', 'return', 'processReturn']);
     }
 
-    public function getBuku($id)
-    {
-        $buku = Buku::findOrFail($id);
-        
-        if (!$buku->isAvailable()) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Buku sedang tidak tersedia (stok habis)'
-            ], 400);
-        }
+// Controller: PeminjamanController.php
+public function index(Request $request)
+{
+    $query = Peminjaman::with(['user', 'buku']);
+    
+    // Filter by user
+    if ($request->filled('user_id')) {
+        $query->where('user_id', $request->user_id);
+    }
+    
+    // Filter by book
+    if ($request->filled('buku_id')) {
+        $query->where('buku_id', $request->buku_id);
+    }
+    
+    // Filter by status
+    if ($request->filled('status')) {
+        $query->where('status', $request->status);
+    }
+    
+    $peminjaman = $query->get();
+    
+    // Get data for dropdowns
+    $users = User::orderBy('name')->get();
+    $books = Buku::orderBy('judul')->get();
+    $statuses = ['dipinjam', 'dikembalikan']; // Add more statuses if needed
+    
+    return view('peminjaman.index', compact('peminjaman', 'users', 'books', 'statuses'));
+}
 
-        return response()->json([
-            'status' => 'success',
-            'buku' => $buku
-        ]);
+    public function create(Request $request)
+    {
+        $buku = Buku::findOrFail($request->buku_id);
+        return view('peminjaman.create', compact('buku'));
     }
 
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'buku_id' => 'required|exists:buku,id',
-            'tanggal_kembali' => 'required|date|after:today'
+            'tanggal_pinjam' => 'required|date',
+            'tanggal_kembali' => 'required|date|after:tanggal_pinjam'
         ]);
 
-        try {
-            DB::beginTransaction();
+        $buku = Buku::findOrFail($request->buku_id);
+        
+        if ($buku->stok <= 0) {
+            return redirect()->back()->with('error', 'Buku tidak tersedia');
+        }
 
-            // Get book and check stock
-            $buku = Buku::lockForUpdate()->findOrFail($request->buku_id);
+        $validated['user_id'] = auth()->id();
+        $validated['status'] = 'dipinjam';
+
+        // Begin transaction
+        \DB::transaction(function () use ($validated, $buku) {
+            Peminjaman::create($validated);
             
-            if ($buku->stok <= 0) {
-                DB::rollBack();
-                return redirect()->back()->with('error', 'Buku sedang tidak tersedia (stok habis)');
-            }
-
-            // Reduce stock
             $buku->stok -= 1;
-            
-            // Update status if stock becomes 0
             if ($buku->stok == 0) {
                 $buku->status = 'dipinjam';
             }
-            
             $buku->save();
+        });
 
-            // Create peminjaman record
-            $peminjaman = new Peminjaman();
-            $peminjaman->user_id = auth()->id();
-            $peminjaman->buku_id = $request->buku_id;
-            $peminjaman->tanggal_pinjam = Carbon::now();
-            $peminjaman->tanggal_kembali = $request->tanggal_kembali;
-            $peminjaman->status = 'dipinjam';
-            $peminjaman->save();
-
-            DB::commit();
-
-            return redirect()->route('dashboard')->with('success', 'Peminjaman berhasil');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return redirect()->back()->with('error', 'Terjadi kesalahan saat memproses peminjaman');
-        }
+        return redirect()->route('mahasiswa.dashboard')->with('success', 'Peminjaman berhasil');
     }
 
-    public function return($id)
+    public function return()
     {
-        $peminjaman = Peminjaman::with(['user', 'buku'])->findOrFail($id);
-        
-        // Calculate late fee if any
-        $dueDate = Carbon::parse($peminjaman->tanggal_kembali);
-        $today = Carbon::now();
-        
-        if ($today->gt($dueDate)) {
-            $daysLate = $today->diffInDays($dueDate);
-            $peminjaman->denda = $daysLate * 1000; // Rp 1000 per day
-        }
-
-        return view('peminjaman.return', compact('peminjaman'));
+        return view('peminjaman.return');
     }
 
-    public function confirmReturn(Request $request, $id)
+    public function processReturn(Request $request)
     {
-        try {
-            DB::beginTransaction();
+        $peminjaman = Peminjaman::with(['user', 'buku'])
+            ->where('status', 'dipinjam')
+            ->findOrFail($request->peminjaman_id);
 
-            $peminjaman = Peminjaman::findOrFail($id);
-            $buku = Buku::lockForUpdate()->findOrFail($peminjaman->buku_id);
+        $denda = 0;
+        if (now() > $peminjaman->tanggal_kembali) {
+            $days = now()->diffInDays($peminjaman->tanggal_kembali);
+            $denda = $days * 1000; // Rp 1000 per hari
+        }
 
-            // Update peminjaman status
+        \DB::transaction(function () use ($peminjaman, $denda) {
             $peminjaman->status = 'dikembalikan';
-            $peminjaman->petugas_notes = $request->petugas_notes;
-            $peminjaman->tanggal_pengembalian = Carbon::now();
+            $peminjaman->denda = $denda;
             $peminjaman->save();
 
-            // Increment book stock
+            $buku = $peminjaman->buku;
             $buku->stok += 1;
-            
-            // Update status if book was previously unavailable
-            if ($buku->status === 'dipinjam') {
+            if ($buku->stok > 0) {
                 $buku->status = 'tersedia';
             }
-            
             $buku->save();
 
-            DB::commit();
+            if ($denda > 0) {
+                DendaPayment::create([
+                    'user_id' => $peminjaman->user_id,
+                    'amount' => $denda,
+                    'payment_date' => now(),
+                    'payment_status' => 'unpaid'
+                ]);
+            }
+        });
 
-            return redirect()->route('dashboard')->with('success', 'Buku berhasil dikembalikan');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return redirect()->back()->with('error', 'Terjadi kesalahan saat memproses pengembalian');
-        }
+        return redirect()->route('peminjaman.index')->with('success', 'Pengembalian berhasil diproses');
     }
 }

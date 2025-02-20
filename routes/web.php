@@ -14,7 +14,7 @@ use App\Http\Controllers\KategoriController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BukuKategoriController;
 use App\Http\Controllers\PetugasController;
-
+use App\Http\Controllers\DendaController;
 Route::get('/', function () {
     return view('welcome');
 });
@@ -38,8 +38,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
     Route::get('/users/{$user}', [UserController::class, 'destroy'])->name('users.destroy');
 
-    Route::resource('buku', BukuController::class);
-    Route::get('/buku/{buku}/qrcode/download', [BukuController::class, 'downloadQRCode'])->name('buku.qrcode.download');
+    // Route::resource('buku', BukuController::class);
+    // Route::get('/buku/{buku}/qrcode/download', [BukuController::class, 'downloadQRCode'])->name('buku.qrcode.download');
     Route::resource('adminmahasiswa', AdminMahasiswaController::class);
     Route::resource('kategori', KategoriController::class);
     Route::resource('buku-kategoris', BukuKategoriController::class);
@@ -51,8 +51,8 @@ Route::middleware(['auth', 'role:petugas'])->prefix('petugas')->group(function (
     Route::get('/dashboard', [PetugasController::class, 'dashboard'])->name('petugas.dashboard');
 
 
-    Route::resource('buku', BukuController::class);
-    Route::get('/buku/{buku}/qrcode/download', [BukuController::class, 'downloadQRCode'])->name('buku.download-qr');
+    // Route::resource('buku', BukuController::class);
+    // Route::get('/buku/{buku}/qrcode/download', [BukuController::class, 'downloadQRCode'])->name('buku.download-qr');
     Route::resource('kategori', KategoriController::class);
 
     Route::get('/peminjaman/{id}/return', [PeminjamanController::class, 'return'])->name('peminjaman.return');
@@ -66,10 +66,18 @@ Route::middleware(['auth', 'role:mahasiswa'])->prefix('mahasiswa')->group(functi
     Route::get('/profile', [MahasiswaController::class, 'profile'])->name('mahasiswa.index');
     Route::get('/profile/edit', [MahasiswaController::class, 'edit'])->name('mahasiswa.edit');
     Route::put('/profile', [MahasiswaController::class, 'update'])->name('mahasiswa.update');
-
+    Route::get('/borrowing-history', [MahasiswaController::class, 'borrowingHistory'])
+    ->name('mahasiswa.borrowing-history');
     Route::get('/peminjaman/scan', [PeminjamanController::class, 'index'])->name('peminjaman.scan');
     Route::get('/peminjaman/get-buku/{buku}', [PeminjamanController::class, 'getBuku'])->name('peminjaman.get-buku');
     Route::post('/peminjaman', [PeminjamanController::class, 'store'])->name('peminjaman.store');
 
 });
 
+Route::resource('buku', BukuController::class);
+Route::get('buku/scan/{id}', [BukuController::class, 'scanQR'])->name('buku.scan');
+Route::resource('peminjaman', PeminjamanController::class);
+Route::get('peminjaman/return', [PeminjamanController::class, 'return'])->name('peminjaman.return');
+Route::post('peminjaman/return', [PeminjamanController::class, 'processReturn'])->name('peminjaman.process-return');
+Route::resource('denda', DendaController::class);
+Route::post('denda/payment', [DendaController::class, 'processPayment'])->name('denda.process-payment');

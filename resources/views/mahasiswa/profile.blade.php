@@ -1,50 +1,6 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Student Dashboard</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.css" rel="stylesheet">
-</head>
-<body class="bg-gray-50">
-    <!-- Navbar -->
-    <nav class="bg-white shadow-lg">
-    <div class="max-w-7xl mx-auto px-4">
-        <div class="flex justify-between items-center h-16">
-            <!-- Left Section: Logo and Links -->
-            <div class="flex items-center space-x-6">
-                <span class="text-blue-600 text-xl font-bold">Perpustakaanku</span>
-                <a href="{{ route('mahasiswa.dashboard') }}" class="text-gray-600 hover:text-blue-600 font-medium">
-                    Dashboard
-                </a>
-                <a href="{{ route('mahasiswa.index') }}" class="text-gray-600 hover:text-blue-600 font-medium">
-                    Profile
-                </a>
-            </div>
+@extends('layouts.app')
 
-            <!-- Right Section: User Info and Logout -->
-            <div class="flex items-center space-x-6">
-                <!-- User Info -->
-                <div class="flex items-center space-x-2">
-                    <img src="https://ui-avatars.com/api/?name={{ Auth::user()->name }}" 
-                         class="w-8 h-8 rounded-full" 
-                         alt="User Avatar">
-                    <span class="text-gray-700 font-medium">{{ Auth::user()->name }}</span>
-                </div>
-
-                <!-- Logout Button -->
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button type="submit" class="text-gray-600 hover:text-gray-800">
-                        <i class="ri-logout-box-line text-xl"></i>
-                        <span class="sr-only">Logout</span>
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
-</nav>
-
+@section('content')
     <!-- Main Content -->
     <div class="max-w-7xl mx-auto px-4 py-8">
 <div class="py-8 bg-gray-50 min-h-screen">
@@ -139,5 +95,4 @@
     </div>
 </div>
     </div>
-</body>
-</html>
+@endsection

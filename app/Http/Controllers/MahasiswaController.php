@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Mahasiswa;
+use App\Models\DendaPayment;
+use App\Models\Peminjaman;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -99,5 +101,34 @@ class MahasiswaController extends Controller
         return redirect()->route('mahasiswa.index')
             ->with('success', 'mahasiswa berhasil dihapus');
     }
+    public function borrowingHistory()
+{
+    $user = Auth::user();
+    $peminjaman = Peminjaman::with(['buku'])
+        ->where('user_id', $user->id)
+        ->orderBy('created_at', 'desc')
+        ->get()
+        ->map(function ($pinjam) {
+            $dueDate = \Carbon\Carbon::parse($pinjam->tanggal_kembali);
+            $now = \Carbon\Carbon::now();
+            
+            $pinjam->is_overdue = false;
+            $pinjam->days_overdue = 0;
+            
+            if ($pinjam->status === 'dipinjam' && $now->gt($dueDate)) {
+                $pinjam->is_overdue = true;
+                $pinjam->days_overdue = $now->diffInDays($dueDate);
+                $pinjam->estimated_denda = $pinjam->days_overdue * 1000; // Rp 1000 per hari
+            }
+            
+            return $pinjam;
+        });
+
+    $totalDenda = DendaPayment::where('user_id', $user->id)
+        ->where('payment_status', 'unpaid')
+        ->sum('amount');
+
+    return view('mahasiswa.borrowing-history', compact('peminjaman', 'totalDenda'));
+}
 }
 

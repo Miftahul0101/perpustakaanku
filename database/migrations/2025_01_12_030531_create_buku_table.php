@@ -17,8 +17,8 @@ class CreateBukuTable extends Migration
             $table->string('isbn', 20)->unique()->nullable();
             $table->enum('status', ['tersedia', 'dipinjam'])->default('tersedia');
             $table->integer('stok')->default(0);
-            $table->text('sinopsis')->nullable(); // New field
-            $table->string('foto')->nullable(); // New field
+            $table->text('sinopsis')->nullable(); 
+            $table->string('foto')->nullable(); 
             $table->string('qr_code')->nullable();
             $table->timestamps();
         });

@@ -33,23 +33,26 @@ class BukuController extends Controller
             'sinopsis' => 'nullable',
             'foto' => 'nullable|image|max:2048'
         ]);
-
+    
+        // Handle file upload if foto is provided
         if ($request->hasFile('foto')) {
-            $path = $request->file('foto')->store('buku', 'public');
-            $validated['foto'] = $path;
+            $fotoPath = $request->file('foto')->store('buku-foto', 'public');
+            $validated['foto'] = $fotoPath;
         }
-
-        // Generate QR Code
-        $buku = Buku::create($validated);
-        $qrCode = QrCode::size(300)
-            ->generate(route('buku.show', $buku->id));
-        
-        $qrPath = 'qrcodes/buku-' . $buku->id . '.svg';
-        Storage::disk('public')->put($qrPath, $qrCode);
-        
-        $buku->update(['qr_code' => $qrPath]);
-
-        return redirect()->route('buku.index')->with('success', 'Buku berhasil ditambahkan');
+    
+        try {
+            // Create new book record
+            $buku = Buku::create($validated);
+    
+            return redirect()
+                ->route('buku.index')
+                ->with('success', 'Buku berhasil ditambahkan');
+        } catch (\Exception $e) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Gagal menambahkan buku. ' . $e->getMessage());
+        }
     }
 
     public function scanQR($id)

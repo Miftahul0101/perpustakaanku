@@ -30,14 +30,13 @@ Route::post('/register', [RegisterController::class, 'store']);
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     
     Route::get('/dashboard', [AdminController::class, 'index'])->name('admin.dashboard');
-    Route::get('/users', [UserController::class, 'index'])->name('users.index');
-    Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
-    Route::post('/users', [UserController::class, 'store'])->name('users.store');
-    Route::get('/users/show', [UserController::class, 'show'])->name('users.show');
-    Route::get('/users/{id}/edit', [UserController::class, 'edit'])->name('users.edit');
-    Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
-    Route::get('/users/{$user}', [UserController::class, 'destroy'])->name('users.destroy');
-
+    Route::get('/users', [UserController::class, 'index'])->name('users.index'); // Menampilkan daftar pengguna
+    Route::get('/users/create', [UserController::class, 'create'])->name('users.create'); // Form tambah pengguna
+    Route::post('/users', [UserController::class, 'store'])->name('users.store'); // Proses simpan pengguna baru
+    Route::get('/users/{user}', [UserController::class, 'show'])->name('users.show'); // Menampilkan detail pengguna
+    Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('users.edit'); // Form edit pengguna
+    Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update'); // Proses update pengguna
+    Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy'); // Hapus pengguna
     // Route::resource('buku', BukuController::class);
     // Route::get('/buku/{buku}/qrcode/download', [BukuController::class, 'downloadQRCode'])->name('buku.qrcode.download');
     Route::resource('adminmahasiswa', AdminMahasiswaController::class);

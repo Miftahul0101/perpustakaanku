@@ -107,6 +107,10 @@
                                 <i class="ph-book-bookmark-bold text-2xl"></i>
                                 <span class="font-medium">Buku</span>
                             </a>
+                            <a href="{{ route('peminjaman.index') }}" class="nav-item flex items-center space-x-4 text-gray-700 py-3 px-4 rounded-xl transition-all hover:bg-blue-50 {{ request()->routeIs('buku.*') ? 'bg-blue-50 text-blue-600' : '' }}">
+                                <i class="ph-book-bookmark-bold text-2xl"></i>
+                                <span class="font-medium">Peminjaman</span>
+                            </a>
                         @else
                             <a href="{{ route('mahasiswa.dashboard') }}" class="nav-item flex items-center space-x-4 text-gray-700 py-3 px-4 rounded-xl transition-all hover:bg-blue-50 {{ request()->routeIs('dashboard') ? 'bg-blue-50 text-blue-600' : '' }}">
                                 <i class="ph-chart-pie-bold text-2xl"></i>
@@ -116,7 +120,7 @@
                                 <i class="ph-books-bold text-2xl"></i>
                                 <span class="font-medium">Profile</span>
                             </a>
-                            <a href="" class="nav-item flex items-center space-x-4 text-gray-700 py-3 px-4 rounded-xl transition-all hover:bg-blue-50 {{ request()->routeIs('riwayat.*') ? 'bg-blue-50 text-blue-600' : '' }}">
+                            <a href="{{ route('mahasiswa.borrowing-history') }}" class="nav-item flex items-center space-x-4 text-gray-700 py-3 px-4 rounded-xl transition-all hover:bg-blue-50 {{ request()->routeIs('riwayat.*') ? 'bg-blue-50 text-blue-600' : '' }}">
                                 <i class="ph-clock-countdown-bold text-2xl"></i>
                                 <span class="font-medium">Riwayat</span>
                             </a>

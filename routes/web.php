@@ -50,7 +50,9 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
 Route::middleware(['auth', 'role:petugas'])->prefix('petugas')->group(function () {
     Route::get('/dashboard', [PetugasController::class, 'dashboard'])->name('petugas.dashboard');
 
-
+    // routes/web.php
+    
+    Route::get('/buku/{id}/download-qr', [BukuController::class, 'downloadQR'])->name('buku.download-qr');
     // Route::resource('buku', BukuController::class);
     // Route::get('/buku/{buku}/qrcode/download', [BukuController::class, 'downloadQRCode'])->name('buku.download-qr');
     Route::resource('kategori', KategoriController::class);
@@ -73,6 +75,7 @@ Route::middleware(['auth', 'role:mahasiswa'])->prefix('mahasiswa')->group(functi
     Route::post('/peminjaman', [PeminjamanController::class, 'store'])->name('peminjaman.store');
 
 });
+Route::get('/buku/scanner', [BukuController::class, 'scanner'])->name('buku.scanner');
 
 Route::resource('buku', BukuController::class);
 Route::get('buku/scan/{id}', [BukuController::class, 'scanQR'])->name('buku.scan');

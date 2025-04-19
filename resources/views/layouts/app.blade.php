@@ -107,9 +107,21 @@
                                 <i class="ph-book-bookmark-bold text-2xl"></i>
                                 <span class="font-medium">Buku</span>
                             </a>
+                            <a href="{{route('kategori.index')}}" class="nav-item flex items-center space-x-4 text-gray-700 py-3 px-4 rounded-xl transition-all hover:bg-blue-50 {{ request()->routeIs('kategori.*') ? 'bg-blue-50 text-blue-600' : '' }}">
+                                <i class="ph-list-bold text-2xl"></i>
+                                <span class="font-medium">Kategori</span>
+                            </a>
+                            <a href="{{route('buku-kategoris.index')}}" class="nav-item flex items-center space-x-4 text-gray-700 py-3 px-4 rounded-xl transition-all hover:bg-blue-50 {{ request()->routeIs('buku-kategoris.*') ? 'bg-blue-50 text-blue-600' : '' }}">
+                                <i class="ph-list-bold text-2xl"></i>
+                                <span class="font-medium">Buku Kategori</span>
+                            </a>
                             <a href="{{ route('peminjaman.index') }}" class="nav-item flex items-center space-x-4 text-gray-700 py-3 px-4 rounded-xl transition-all hover:bg-blue-50 {{ request()->routeIs('buku.*') ? 'bg-blue-50 text-blue-600' : '' }}">
                                 <i class="ph-book-bookmark-bold text-2xl"></i>
                                 <span class="font-medium">Peminjaman</span>
+                            </a>
+                            <a href="{{route('denda.index')}}" class="nav-item flex items-center space-x-4 text-gray-700 py-3 px-4 rounded-xl transition-all hover:bg-blue-50 {{ request()->routeIs('denda.*') ? 'bg-blue-50 text-blue-600' : '' }}">
+                                <i class="ph-money-bold text-2xl"></i>
+                                <span class="font-medium">Denda</span>
                             </a>
                         @else
                             <a href="{{ route('mahasiswa.dashboard') }}" class="nav-item flex items-center space-x-4 text-gray-700 py-3 px-4 rounded-xl transition-all hover:bg-blue-50 {{ request()->routeIs('dashboard') ? 'bg-blue-50 text-blue-600' : '' }}">

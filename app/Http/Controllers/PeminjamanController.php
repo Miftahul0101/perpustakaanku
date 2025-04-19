@@ -18,35 +18,44 @@ class PeminjamanController extends Controller
         $this->middleware('role:petugas')->only(['index', 'return', 'processReturn']);
     }
 
-// Controller: PeminjamanController.php
-public function index(Request $request)
-{
-    $query = Peminjaman::with(['user', 'buku']);
-    
-    // Filter by user
-    if ($request->filled('user_id')) {
-        $query->where('user_id', $request->user_id);
+    public function index(Request $request)
+    {
+        $query = Peminjaman::with(['user', 'buku']);
+        
+        // Filter by user
+        if ($request->filled('user_id')) {
+            $query->where('user_id', $request->user_id);
+        }
+        
+        // Filter by book
+        if ($request->filled('buku_id')) {
+            $query->where('buku_id', $request->buku_id);
+        }
+        
+        // Filter by status
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+        
+        $peminjaman = $query->get();
+        
+        // Calculate current denda for active loans
+        foreach ($peminjaman as $pinjam) {
+            if ($pinjam->status === 'dipinjam' && now() > $pinjam->tanggal_kembali) {
+                $days = now()->diffInDays($pinjam->tanggal_kembali);
+                $pinjam->current_denda = $days * 1000; // Rp 1000 per day
+            } else {
+                $pinjam->current_denda = 0;
+            }
+        }
+        
+        // Get data for dropdowns
+        $users = User::orderBy('name')->get();
+        $books = Buku::orderBy('judul')->get();
+        $statuses = ['dipinjam', 'dikembalikan']; // Add more statuses if needed
+        
+        return view('peminjaman.index', compact('peminjaman', 'users', 'books', 'statuses'));
     }
-    
-    // Filter by book
-    if ($request->filled('buku_id')) {
-        $query->where('buku_id', $request->buku_id);
-    }
-    
-    // Filter by status
-    if ($request->filled('status')) {
-        $query->where('status', $request->status);
-    }
-    
-    $peminjaman = $query->get();
-    
-    // Get data for dropdowns
-    $users = User::orderBy('name')->get();
-    $books = Buku::orderBy('judul')->get();
-    $statuses = ['dipinjam', 'dikembalikan']; // Add more statuses if needed
-    
-    return view('peminjaman.index', compact('peminjaman', 'users', 'books', 'statuses'));
-}
 
     public function create(Request $request)
     {
@@ -87,7 +96,22 @@ public function index(Request $request)
 
     public function return()
     {
-        return view('peminjaman.return');
+        // Get all active loans with dynamic denda calculation
+        $peminjaman = Peminjaman::with(['user', 'buku'])
+            ->where('status', 'dipinjam')
+            ->get()
+            ->map(function($pinjam) {
+                // Calculate current denda
+                if (now() > $pinjam->tanggal_kembali) {
+                    $days = now()->diffInDays($pinjam->tanggal_kembali);
+                    $pinjam->current_denda = $days * 1000; // Rp 1000 per day
+                } else {
+                    $pinjam->current_denda = 0;
+                }
+                return $pinjam;
+            });
+            
+        return view('peminjaman.return', compact('peminjaman'));
     }
 
     public function processReturn(Request $request)
@@ -96,15 +120,17 @@ public function index(Request $request)
             ->where('status', 'dipinjam')
             ->findOrFail($request->peminjaman_id);
 
+        // Calculate up-to-date denda amount
         $denda = 0;
         if (now() > $peminjaman->tanggal_kembali) {
             $days = now()->diffInDays($peminjaman->tanggal_kembali);
-            $denda = $days * 1000; // Rp 1000 per hari
+            $denda = $days * 1000; // Rp 1000 per day
         }
 
         \DB::transaction(function () use ($peminjaman, $denda) {
             $peminjaman->status = 'dikembalikan';
             $peminjaman->denda = $denda;
+            $peminjaman->actual_return_date = now();
             $peminjaman->save();
 
             $buku = $peminjaman->buku;
@@ -125,5 +151,24 @@ public function index(Request $request)
         });
 
         return redirect()->route('peminjaman.index')->with('success', 'Pengembalian berhasil diproses');
+    }
+    
+    public function activeLoansDenda()
+    {
+        // Get all active loans with current denda
+        $activePeminjaman = Peminjaman::with(['user', 'buku'])
+            ->where('status', 'dipinjam')
+            ->get()
+            ->map(function($pinjam) {
+                if (now() > $pinjam->tanggal_kembali) {
+                    $days = now()->diffInDays($pinjam->tanggal_kembali);
+                    $pinjam->current_denda = $days * 1000; // Rp 1000 per day
+                } else {
+                    $pinjam->current_denda = 0;
+                }
+                return $pinjam;
+            });
+            
+        return view('peminjaman.active_denda', compact('activePeminjaman'));
     }
 }

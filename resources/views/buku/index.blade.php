@@ -90,9 +90,7 @@
                                    class="block w-full text-center px-4 py-2 bg-yellow-500 hover:bg-yellow-600 transition-colors duration-200 text-white font-medium rounded-lg shadow-md">
                                     Edit Buku
                                 </a>
-                            @endif
-
-                            @if($book->qr_code)
+                                @if($book->qr_code)
                                 <div class="flex flex-col items-center space-y-2 mt-4 pt-4 border-t border-gray-100">
                                     <img src="{{ Storage::url($book->qr_code) }}" 
                                          alt="QR Code" 
@@ -106,7 +104,16 @@
                                         Download QR Code
                                     </a>
                                 </div>
+                                <form action="{{ route('buku.destroy', $book->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus buku ini?');">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="text-red-600 hover:text-red-800 text-sm font-medium">
+                                                        <i class="bi bi-trash"></i> Hapus
+                                                    </button>
+                                                </form>
                             @endif
+                                @endif
+
                         </div>
                     </div>
                 </div>

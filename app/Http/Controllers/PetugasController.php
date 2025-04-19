@@ -22,7 +22,6 @@ class PetugasController extends Controller
             ->groupBy('fakultas')
             ->get();
 
-        // Get most popular book categories
         $popularKategori = BukuKategori::with('kategori')
             ->select('kategori_id')
             ->selectRaw('count(*) as total')

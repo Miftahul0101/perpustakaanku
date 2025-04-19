@@ -15,10 +15,14 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BukuKategoriController;
 use App\Http\Controllers\PetugasController;
 use App\Http\Controllers\DendaController;
-Route::get('/', function () {
-    return view('welcome');
-});
+use App\Http\Controllers\WelcomeController;
 
+Route::get('/', [WelcomeController::class, 'index'])->name('welcome');
+Route::get('/categories', [WelcomeController::class, 'allCategories'])->name('categories.all');
+Route::get('/books', [WelcomeController::class, 'allBooks'])->name('books.all');
+Route::get('/category/{id}/books', [WelcomeController::class, 'booksByCategory'])->name('category.books');
+Route::get('/about', [WelcomeController::class, 'about'])->name('about');
+Route::get('/contact', [WelcomeController::class, 'contact'])->name('contact');
 // Auth Routes
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
@@ -41,7 +45,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     // Route::get('/buku/{buku}/qrcode/download', [BukuController::class, 'downloadQRCode'])->name('buku.qrcode.download');
     Route::resource('adminmahasiswa', AdminMahasiswaController::class);
     Route::resource('kategori', KategoriController::class);
-    Route::resource('buku-kategoris', BukuKategoriController::class);
+    
     });
 
 
@@ -55,9 +59,21 @@ Route::middleware(['auth', 'role:petugas'])->prefix('petugas')->group(function (
     // Route::resource('buku', BukuController::class);
     // Route::get('/buku/{buku}/qrcode/download', [BukuController::class, 'downloadQRCode'])->name('buku.download-qr');
     Route::resource('kategori', KategoriController::class);
-
+    Route::resource('buku-kategoris', BukuKategoriController::class);
     Route::get('/peminjaman/{id}/return', [PeminjamanController::class, 'return'])->name('peminjaman.return');
     Route::put('/peminjaman/{id}/confirm-return', [PeminjamanController::class, 'confirmReturn'])->name('peminjaman.confirm-return');
+    Route::get('/petugas/dashboard', [PetugasController::class, 'dashboard'])->name('petugas.dashboard');
+        
+    // Peminjaman Management
+    Route::get('/peminjaman', [PeminjamanController::class, 'index'])->name('peminjaman.index');
+    Route::get('/peminjaman/return', [PeminjamanController::class, 'return'])->name('peminjaman.return');
+    Route::post('/peminjaman/return/process', [PeminjamanController::class, 'processReturn'])->name('peminjaman.processReturn');
+    Route::get('/peminjaman/active-denda', [PeminjamanController::class, 'activeLoansDenda'])->name('peminjaman.activeLoansDenda');
+    
+    // Denda Management
+    Route::get('/denda', [DendaController::class, 'index'])->name('denda.index');
+    Route::post('/denda/payment/process', [DendaController::class, 'processPayment'])->name('denda.processPayment');
+    Route::get('/denda/calculate-active', [DendaController::class, 'calculateActiveDenda'])->name('denda.calculateActive');
 
     });
 

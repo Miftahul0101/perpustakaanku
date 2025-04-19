@@ -23,14 +23,13 @@
                             <thead>
                                 <tr class="bg-gray-100">
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jumlah Buku</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kategori</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
                                 @foreach($kategoris as $kategori)
-                                    <tr>
+                                <tr>
                                         <td class="px-6 py-4 whitespace-nowrap">{{ $kategori->id }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap">{{ $kategori->nama }}</td>
                                         

@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Kategori;
 use App\Models\Buku;
 use Illuminate\Http\Request;
-
+use App\Models\BukuKategori;
 class KategoriController extends Controller
 {
     /**
@@ -17,8 +17,15 @@ class KategoriController extends Controller
     {
         $kategoris = Kategori::withCount('bukus')->get();
         $bukuTanpaKategori = Buku::doesntHave('kategoris')->get();
-        
-        return view('kategori.index', compact('kategoris', 'bukuTanpaKategori'));
+        $popularKategori = BukuKategori::with('kategori')
+        ->select('kategori_id')
+        ->selectRaw('count(*) as total')
+        ->groupBy('kategori_id')
+        ->orderBy('total', 'desc')
+        ->limit(5)
+        ->get();
+
+        return view('kategori.index', compact('kategoris', 'bukuTanpaKategori','popularKategori'));
     }
 
     /**

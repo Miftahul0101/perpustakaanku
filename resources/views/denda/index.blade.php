@@ -1,8 +1,8 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="py-8 bg-gray-50">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="py-12 bg-gray-50">
+<div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
         <div class="bg-white rounded-lg shadow-md overflow-hidden">
             <!-- Header -->
             <div class="bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -307,3 +307,4 @@
     }
 </script>
 @endforeach
+@endsection

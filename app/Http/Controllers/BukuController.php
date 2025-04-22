@@ -27,7 +27,6 @@ class BukuController extends Controller
 
     public function store(Request $request)
     {
-        // Validasi input
         $validated = $request->validate([
             'judul' => 'required|string|max:255',
             'penulis' => 'required|string|max:255',

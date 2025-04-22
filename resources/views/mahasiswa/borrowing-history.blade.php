@@ -74,13 +74,20 @@
                                             </span>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
-                                            @if($pinjam->denda > 0 || ($pinjam->is_overdue && $pinjam->estimated_denda > 0))
-                                                <span class="text-red-600">
-                                                    Rp {{ number_format($pinjam->denda ?: $pinjam->estimated_denda, 0, ',', '.') }}
-                                                </span>
-                                            @else
-                                                -
-                                            @endif
+                                        @if($pinjam->status == 'dipinjam' && now() > $pinjam->tanggal_kembali)
+                                        <span class="text-red-600 font-semibold">
+                                            Rp {{ number_format($pinjam->current_denda, 0, ',', '.') }}
+                                        </span>
+                                        <span class="text-xs text-gray-500 block">
+                                            ({{ now()->diffInDays($pinjam->tanggal_kembali) }} hari)
+                                        </span>
+                                    @elseif($pinjam->status == 'dikembalikan' && $pinjam->denda > 0)
+                                        <span class="text-red-600">
+                                            Rp {{ number_format($pinjam->denda, 0, ',', '.') }}
+                                        </span>
+                                    @else
+                                        <span class="text-gray-400">-</span>
+                                    @endif
                                         </td>
                                     </tr>
                                     @endforeach

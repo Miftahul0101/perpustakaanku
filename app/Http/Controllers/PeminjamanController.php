@@ -130,7 +130,7 @@ class PeminjamanController extends Controller
         \DB::transaction(function () use ($peminjaman, $denda) {
             $peminjaman->status = 'dikembalikan';
             $peminjaman->denda = $denda;
-            $peminjaman->actual_return_date = now();
+
             $peminjaman->save();
 
             $buku = $peminjaman->buku;

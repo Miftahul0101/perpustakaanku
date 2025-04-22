@@ -150,10 +150,14 @@ class AdminMahasiswaController extends Controller
                 ->with('error', 'Terjadi kesalahan saat memperbarui data');
         }
     }
-    public function destroy(User $user)
+    public function destroy(Request $request, $id)
     {
+        $user = Mahasiswa::findOrFail($id);
+    
+        
         $user->delete();
-        return redirect()->route('users.index')
-            ->with('success', 'User berhasil dihapus');
+    
+        return redirect()->route('adminmahasiswa.index')
+            ->with('success', 'mahasiswa berhasil dihapus');
     }
 }

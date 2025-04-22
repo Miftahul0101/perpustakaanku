@@ -24,15 +24,6 @@
             </div>
         </div>
 
-        <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-purple-500">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h3 class="text-gray-500 text-sm uppercase font-medium">Jurusan Terdaftar</h3>
-                    <p class="text-2xl font-bold text-purple-600">{{ $totalJurusan }}</p>
-                </div>
-                <i class="ri-graduation-cap-line text-4xl text-purple-300"></i>
-            </div>
-        </div>
     </div>
 
     <div class="bg-white rounded-lg shadow-lg overflow-hidden">

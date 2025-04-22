@@ -131,7 +131,6 @@
                                         class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
                                     <label for="remember" class="ml-2 block text-sm text-gray-700">Remember me</label>
                                 </div>
-                                <a href="#" class="text-sm text-blue-600 hover:text-blue-800 transition duration-300">Lupa password?</a>
                             </div>
 
                             <button type="submit" 
@@ -143,15 +142,7 @@
 
                         <div class="mt-8 pt-6 border-t border-gray-200">
                             <div class="flex items-center justify-center space-x-4">
-                                <a href="#" class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center hover:bg-blue-200 transition-colors duration-300">
-                                    <i class="fab fa-facebook-f text-blue-600"></i>
-                                </a>
-                                <a href="#" class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center hover:bg-red-200 transition-colors duration-300">
-                                    <i class="fab fa-google text-red-600"></i>
-                                </a>
-                                <a href="#" class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors duration-300">
-                                    <i class="fab fa-github text-gray-600"></i>
-                                </a>
+                                
                             </div>
                             <div class="mt-6 text-center text-sm">
                                 <span class="text-gray-600">Belum mempunyai akun?</span>

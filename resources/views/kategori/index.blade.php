@@ -57,19 +57,6 @@
                             </tbody>
                         </table>
                     </div>
-
-                    <div class="mt-6">
-                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Tambah Kategori ke Buku</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            @foreach($bukuTanpaKategori as $buku)
-                                <div class="bg-gray-50 rounded-lg p-4">
-                                    <h4 class="font-medium text-gray-800">{{ $buku->judul }}</h4>
-                                    <p class="text-sm text-gray-600 mb-2">{{ $buku->penulis }}</p>
-                                    
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>

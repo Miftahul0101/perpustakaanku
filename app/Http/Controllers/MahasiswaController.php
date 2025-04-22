@@ -128,6 +128,16 @@ class MahasiswaController extends Controller
         ->where('payment_status', 'unpaid')
         ->sum('amount');
 
+                // Calculate current denda for active loans
+        foreach ($peminjaman as $pinjam) {
+                    if ($pinjam->status === 'dipinjam' && now() > $pinjam->tanggal_kembali) {
+                        $days = now()->diffInDays($pinjam->tanggal_kembali);
+                        $pinjam->current_denda = $days * 1000; // Rp 1000 per day
+                    } else {
+                        $pinjam->current_denda = 0;
+                    }
+                }
+                
     return view('mahasiswa.borrowing-history', compact('peminjaman', 'totalDenda'));
 }
 }
